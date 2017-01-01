@@ -1,0 +1,642 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../goc-icons/goc-icons.html">
+<link rel="import" href="../goc-styles/goc-styles.html">
+<link rel="import" href="../iron-image/iron-image.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../sortable-list/sortable-list.html">
+<link rel="import" href="../input-file/input-file.html">
+<link rel="import" href="../dropdown-menu/dropdown-menu-container.html">
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="widget-slides-editor-lightbox.html">
+
+<!--
+`widget-slides-editor`
+
+@demo demo/widget-slides-editor.html 
+-->
+
+<dom-module id="widget-slides-editor">
+  <template>
+    <style include="header-layout-styles">
+      :host {
+        background: var(--goc-background-color);
+        display: block;
+        height: 100%;
+      }
+
+      .header-layout__content {
+        max-width: 100%;
+        padding: 0;
+      }
+
+      /* slides-list block */
+      .slides-list {
+        @apply(--unselectable);
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+        margin-left: 4px;
+      }
+
+      /* slide block */
+      .slide {
+        background: var(--paper-grey-200);
+        cursor: pointer;
+        display: inline-block;
+        float: left;
+        height: 100px;
+        margin: 4px 4px 0 0;
+        position: relative;
+        width: 100px;
+      }
+
+      .slide__image-container {
+        height: 100%;
+        position: relative;
+        width: 100%;
+
+        -webkit-transition: transform .250s cubic-bezier(0.0,0.0,0.2,1);
+        transition: transform .250s cubic-bezier(0.0,0.0,0.2,1);
+      }
+
+      .slide__iron-image {
+        background: white;
+        height: 100%;
+        width: 100%;
+        --iron-image-placeholder: {
+          background: var(--paper-grey-300);
+        }
+      }
+
+      .slide__gradient {
+        background-image: -webkit-linear-gradient(to bottom,rgba(0,0,0,0.26),transparent 56px,transparent);
+        background-image: linear-gradient(to bottom,rgba(0,0,0,0.26),transparent 56px,transparent);
+        bottom: 0;
+        left: 0;
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 1;
+
+        -webkit-transition: opacity .200s cubic-bezier(0.0,0.0,0.2,1);
+        transition: opacity .200s cubic-bezier(0.0,0.0,0.2,1);
+      }
+
+      .slide__checkbox {
+        color: white;
+        left: 5px;
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+        top: 5px;
+        z-index: 2;
+
+        -webkit-transition: opacity .200s cubic-bezier(0.0,0.0,0.2,1);
+        transition: opacity .200s cubic-bezier(0.0,0.0,0.2,1);
+      }
+
+      /* interactions  */
+      .slide--pointerover .slide__checkbox,
+      .slides-list--selection-active .slide__checkbox {
+        opacity: 0.8;
+        pointer-events: all;
+      }
+
+      .slide--pointerover .slide__gradient {
+        opacity: 1;
+      }
+
+      .slide--selected .slide__image-container {
+        transform: scale(0.72);
+      }
+
+      .slide--selected .slide__checkbox {
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0px 2px 4px rgba(0,0,0,0.30);
+        color: var(--goc-accent-color);
+        opacity: 1;
+      }    
+    </style>
+
+    <input-file id="inputFile" on-files-selected="_onFilesSelected" on-load="_onLoadFiles" style="display: none;"></input-file>
+
+    <div class="header-layout">
+
+      <!-- header -->
+      <div class="header-layout__header">
+        <div class="header-toolbar">
+          <a href$="/presentation/[[presentationId]]">
+            <paper-icon-button icon="arrow-back" aria-label="Go back"></paper-icon-button>
+          </a>
+          <div class="header-toolbar__main-content">
+            <div class="header-toolbar__title">[[customName]]</div>
+            <div class="header-toolbar__subtitle">Slides</div>
+          </div>
+          <paper-icon-button icon="add-photo" on-tap="_addPhotoTapped" aria-label="Add photo slide"></paper-icon-button>
+
+          <dropdown-menu-container>
+            <paper-icon-button icon="dots-vertical" title="More"></paper-icon-button>
+
+            <template is="dom-template">
+              <button on-tap="selectAll">Select all</button>
+            </template>
+          </dropdown-menu-container>
+        </div>
+
+        <div class="header-toolbar header-toolbar--secondary" id="selectionToolbar">
+          <paper-icon-button icon="close" on-tap="cancelSelection" aria-label="Cancel selection"></paper-icon-button>
+          <div class="header-toolbar__main-content">
+            <div class="header-toolbar__title">[[selection.length]]</div>
+          </div>
+          <paper-icon-button icon="delete" on-tap="_removeSelectionTapped" aria-label="Remove selected slides"></paper-icon-button>
+        </div>
+      </div>
+
+      <!-- content -->
+      <div class="header-layout__content">
+        <sortable-list class="slides-list" id="sortableList" dragging="{{dragging}}" sortable=".slide" on-sort-list="_onSortList">
+          <template is="dom-repeat" id="slidesDomRepeat" items="[[_slides]]">
+            <div class="slide"
+                data-item-id$="[[item.__i__]]"
+                style$="[[_computedSlideStyle()]]"
+                on-pointerover="_onPointerOverSlide"
+                on-pointerout="_onPointerOutSlide"
+                on-touchmove="_onTouchMoveSlider"
+                on-pointerdown="_onPointerDownSlide"
+                on-pointerup="_onPointerUpSlide">
+
+              <div class="slide__image-container">
+                <div class="slide__gradient"></div>
+                <iron-image
+                    class="slide__iron-image"
+                    src="[[_computedThumbnailUrl(item)]]"
+                    preload
+                    sizing="cover"
+                    on-error-changed="_imageLoadError"></iron-image>
+              </div>
+
+              <iron-icon
+                  class="slide__checkbox"
+                  name="checkbox"
+                  icon="checkbox-blank-circle-outline"
+                  role="button"
+                  aria-label="Select slide"></iron-icon>
+            </div>
+          </template>
+        </sortable-list>
+      </div>
+
+    </div>
+
+  </template>
+</dom-module>
+
+<script>
+(function() {
+  'use strict';
+
+  Polymer({
+
+    is: 'widget-slides-editor',
+
+    properties: {
+
+      /**
+       * 
+       */
+      data: {
+        type: Object,
+        value: _ => {
+          return {
+            slides: []
+          };
+        },
+        observer: '_dataChanged'
+      },
+
+      customName: String,
+
+      presentationId: String,
+
+      selection: {
+        type: Array,
+        value: _ => {
+          return [];
+        }
+      },
+
+      selectionActive: {
+        type: Boolean,
+        readOnly: true,
+        observer: '_selectionActiveChanged'
+      },
+
+      dragging: Boolean,
+
+      _slideFitSize: {
+        type: Number,
+        value: 100,
+        observer: '_slideFitSizeChanged'
+      },
+
+      _slides: {
+        type: Array
+      },
+
+      _uploadedFiles: {
+        type: Object,
+        value: _ => {return {}}
+      },
+
+      // Number of files being uploaded
+      _uploadingFiles: {
+        type: Number,
+        value: 0
+      }
+
+    },
+
+    behaviors: [
+      Polymer.IronResizableBehavior
+    ],
+
+    observers: [
+      '_selectionChanged(selection.splices)'
+    ],
+
+    attached() {
+      this._onIronResize = this._onIronResize.bind(this);
+      this._onKeydown = this._onKeydown.bind(this);
+
+      // setTimeout(_ => {
+        // this._updateSlideFitSize();
+        // this._slides = this.data.slides;
+        this.addEventListener('iron-resize', this._onIronResize);
+        document.body.addEventListener('keydown', this._onKeydown);
+      // }, 1)
+    },
+
+    detached() {
+      this.removeEventListener('iron-resize', this._onIronResize);
+      document.body.removeEventListener('keydown', this._onKeydown);
+    },
+
+    selectAll() {
+      const slides = this.$.sortableList.children;
+
+      for (let i = 0; i < slides.length; i++) {
+        if (slides[i].localName !== 'template' && !slides[i].classList.contains('slide--selected')) {
+          this._toggleSlide(slides[i]);
+        }
+      }
+    },
+
+    cancelSelection() {
+      for (let i = this.selection.length -1; i >= 0 ; i--) {
+        this._toggleSlide(this.selection[i]);
+      }
+    },
+
+    _onIronResize() {
+      this.debounce('_updateSlideFitSize', this._updateSlideFitSize.bind(this), 400);
+    },
+
+    /**
+     * Pointer Over.
+     */
+    _onPointerOverSlide(event) {
+      if (event.pointerType === 'mouse') {
+        event.currentTarget.classList.add('slide--pointerover');
+      }
+    },
+
+    /**
+     * Pointer Out.
+     */
+    _onPointerOutSlide(event) {
+      if (event.pointerType === 'mouse') {
+        event.currentTarget.classList.remove('slide--pointerover');
+      }
+    },
+
+    /**
+     * Pointer Down.
+     */
+    _onPointerDownSlide(event) {
+      // Touch down 
+      if (event.pointerType === 'touch') {
+        const currentTarget = event.currentTarget;
+        this._lastTouchPressedSlide = null;
+
+        this._touchPressJob = setTimeout(_ => {
+          if ('vibrate' in navigator) {
+            navigator.vibrate(30);
+          }
+
+          this._lastTouchPressedSlide = currentTarget;
+          // si hace up sobre el mismo, pues no hace na
+          this._toggleSlide(currentTarget);
+          this._touchPressJob = null;
+        }, 300);
+      }
+    },
+
+    /**
+     * Pointer Move.
+     */
+    _onTouchMoveSlider(event) {
+      this._cancelPressJob();
+    },
+
+    /**
+     * Pointer Up.
+     */
+    _onPointerUpSlide(event) {
+      if (event.pointerType === 'touch') {
+        this._cancelPressJob();
+      }
+
+      if (this.dragging) {
+        return;
+      }
+
+      if (this.selection.length) {
+        if (this._lastTouchPressedSlide !== event.currentTarget) {
+          this._toggleSlide(event.currentTarget);
+        }
+      } else {
+        if (event.pointerType === 'mouse' && event.target.getAttribute('name') === 'checkbox') {
+          this._toggleSlide(event.currentTarget);
+        } else if (!this._lightboxOverlay) {
+          const slide = this.$.slidesDomRepeat.itemForElement(event.currentTarget);
+          this._lightboxOverlay = document.createElement('widget-slides-editor-lightbox');
+
+          this._lightboxOverlay.onDetach = _ => {
+            this._lightboxOverlay = null;
+          };
+
+          this._lightboxOverlay.slides = this._slides;
+          this._lightboxOverlay.currentIndex = this.data.slides.indexOf(slide);
+          this._lightboxOverlay.opened = true;
+        }
+      }
+
+      if (this._lastTouchPressedSlide) {
+        this._lastTouchPressedSlide = null;
+      }
+    },
+
+    _cancelPressJob() {
+      if (this._touchPressJob) {
+        clearTimeout(this._touchPressJob);
+        this._touchPressJob = null;
+      }
+    },
+
+    /**
+     * Toggle slide selection for the given slide element 
+     *
+     * @param {!HTMLElement} slideEl
+     * @return {Boolean} toggle state
+     */
+    _toggleSlide(slideEl) {
+      const index = this.selection.indexOf(slideEl);
+      const isSelected = index > -1;
+      const checkboxEl = Polymer.dom(slideEl).querySelector('.slide__checkbox');
+
+      if (isSelected) {
+        this.splice('selection', index, 1);
+        slideEl.classList.remove('slide--selected');
+        checkboxEl.icon = 'checkbox-blank-circle-outline';
+      } else {
+        this.push('selection', slideEl);
+        slideEl.classList.add('slide--selected');
+        checkboxEl.icon = 'check-circle';
+      }
+
+      return !isSelected;
+    },
+
+    _dataChanged(data) {
+      setTimeout(_ => {
+        if (data && data.slides) {
+          this._updateSlideFitSize();
+          this.data.slides.forEach((slide, i) => slide.__i__ = i);
+          this._slides = this.data.slides;
+        }
+      }, 1);
+    },
+
+    _selectionChanged() {
+      this._setSelectionActive(!!this.selection.length);
+
+      if (this.selection.length) {
+        this.$.selectionToolbar.classList.add('header-toolbar--active');
+      } else {
+        this.$.selectionToolbar.classList.remove('header-toolbar--active');
+      }
+    },
+
+    _updateSlideFitSize() {
+      if (typeof this._scrollBarSize !== 'number') {
+        this._scrollBarSize = this._getScrollBarWidth();
+      }
+      const containerWidth = this.$.sortableList.getBoundingClientRect().width - this._scrollBarSize;
+      const minSize = 100;
+      const margin = 4;
+      this._slideFitSize = containerWidth / Math.floor(containerWidth / minSize) - margin;
+    },
+
+    _slideFitSizeChanged(slideFitSize, old) {
+      const slides = this.$.sortableList.children;
+
+      if (slides.length > 1) {
+        for (let i = 0; i < slides.length; i++) {
+          if (slides[i].localName !== 'template') {
+            slides[i].style.width = this._slideFitSize + 'px';
+            slides[i].style.height = this._slideFitSize + 'px';
+          }
+        }
+      }
+    },
+    
+    _computedSlideStyle() {
+      const size = this._slideFitSize;
+      return `width: ${size}px; height: ${size}px;`;
+    },
+
+    _onKeydown(event) {
+      const escKey = 27;
+
+      if (event.keyCode === escKey) {
+        if (this.selection.length) {
+          this.cancelSelection();
+        }
+      }
+    },
+
+    _addPhotoTapped() {
+      this.$.inputFile.selectFiles();
+    },
+
+    _onFilesSelected(event) {
+      const files = event.detail.files;
+      this._uploadingFiles = this._uploadingFiles + files.length;
+    },
+
+    _onLoadFiles(event) {
+      const files = event.detail.files;
+
+      for (let i = 0; i < files.length; i++) {
+        this._uploadingFiles --;
+        const file = files[i];
+        if (file.urls) {
+          const parts = file.name.split('.');
+          parts.pop();
+          const filename = parts.join('.');
+          this._uploadedFiles[filename] = file;
+
+          file.urls.then(urls => {
+            requestIdleCallback(_ => {
+              this.push('_slides', {urls});
+              // save inmediately every 3 at least
+              // and every single one let the debounce be
+              this._saveChanges({
+                inmediate: this._uploadingFiles % 3 === 0
+              });
+            });
+          });
+        }
+      }
+    },
+
+    _imageLoadError(event) {
+      if (event.detail.value) {
+        const item = event.model.item;
+        const urls = item.urls;
+
+        if (urls) {
+          const original = urls.find(item => {
+            const reg = new RegExp(`-${item.width}-${item.height}\\.\\w+`);
+            return !item.url.match(reg);
+          });
+
+          try {
+            const filename = original.url.match(/\/([^\/]*)$/)[1];
+            const parts = filename.split('.');
+            parts.pop();
+            const name = parts.join('.');
+            const file = this._uploadedFiles[name];
+            const fileTmpUrl = URL.createObjectURL(file);
+            const ironImage = event.path[0];
+            ironImage.src = fileTmpUrl;
+            this._uploadedFiles[name] = null;
+          } catch(err) {
+            // If not possible, load from network few times and at last
+            // try the original
+            const ironImage = event.path[0];
+
+            item.retries = item.retries || 0;
+            item.retries ++;
+
+            if (item.retries < 3) {
+              // Try the same again
+              this.async(_ => ironImage._load(ironImage.src), item.retries * 1500);
+            } else if (item.retries !== null){
+              item.retries = null;
+
+              // try original
+              if (original) {
+                ironImage._load(original.url);
+              }
+            }
+          }
+        }
+      }
+    },
+
+    _removeSelectionTapped(event) {
+      // Wait for ripple effect
+      requestAnimationFrame(_ => {
+        this.selection.forEach(slideEl => {
+          const item = this.$.slidesDomRepeat.itemForElement(slideEl);
+          this.splice('_slides', this._slides.indexOf(item), 1);
+          this._saveChanges({inmediate: true});
+        });
+
+        this.cancelSelection();
+      });
+    },
+
+    _computedThumbnailUrl(slide) {
+      const urls = slide.urls.sort((a,b) => {
+        return a.width - b.width;
+      });
+
+      return urls[0].url;
+    },
+
+    _selectionActiveChanged(selectionActive) {
+      if (selectionActive) {
+        this.$.sortableList.classList.add('slides-list--selection-active');
+      } else {
+        this.$.sortableList.classList.remove('slides-list--selection-active');
+      }
+    },
+
+    _getScrollBarWidth() {
+      const inner = document.createElement('p');
+      inner.style.width = "100%";
+      inner.style.height = "200px";
+
+      const outer = document.createElement('div');
+      outer.style.position = "absolute";
+      outer.style.top = "0px";
+      outer.style.left = "0px";
+      outer.style.visibility = "hidden";
+      outer.style.width = "200px";
+      outer.style.height = "150px";
+      outer.style.overflow = "hidden";
+      outer.appendChild (inner);
+
+      document.body.appendChild (outer);
+      const w1 = inner.offsetWidth;
+      outer.style.overflow = 'scroll';
+      let w2 = inner.offsetWidth;
+
+      if (w1 == w2) {
+        w2 = outer.clientWidth;
+      }
+
+      document.body.removeChild(outer);
+
+      return (w1 - w2) || 0;
+    },
+
+    _saveChanges({inmediate=false} = {}) {
+      if (inmediate) {
+        this.cancelDebouncer('save-changes');
+        this.fire('widget-update');
+      } else {
+        this.debounce('save-changes', _ => this.fire('widget-update'), 4000);
+      }
+    },
+
+    _onSortList(event) {
+      const sortedSlides = [];
+
+      this.$.sortableList.items.forEach(slideElement => {
+        const i = parseInt(slideElement.getAttribute('data-item-id'));
+        const slideObj = this._slides.find(slide => slide.__i__ === i);
+        sortedSlides.push(slideObj);
+      });
+      this.data.slides = sortedSlides;
+      this._saveChanges({inmediate: true});
+    },
+
+  });
+
+}());
+</script>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <title>widget-slides demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script>
+ 
+    </script>
+
+    <link rel="import" href="../widget-slides-editor.html">
+    <link rel="import" href="../../overlay-container/overlay-container.html">
+
+    <style is="custom-style">
+
+      html,body {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        min-height: 100vh;
+      }
+
+      overlay-container {
+        bottom: 0;
+        left: 0;
+        pointer-events: none;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 1;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <overlay-container></overlay-container>
+    <widget-slides-editor></widget-slides-editor>
+
+    <script>
+
+      const slides = [
+        {urls: [{url: 'images/1.jpg'}]},
+        {urls: [{url: 'images/2.jpg'}]},
+        {urls: [{url: 'images/3.jpg'}]},
+        {urls: [{url: 'images/4.jpg'}]},
+        {urls: [{url: 'images/5.jpg'}]},
+        {urls: [{url: 'images/6.jpg'}]},
+        {urls: [{url: 'images/7.jpg'}]},
+        {urls: [{url: 'images/8.jpg'}]}
+      ];
+
+      window.onload = () => {
+        const el = document.querySelector('widget-slides-editor');
+
+        el.data = {
+          slides: slides
+        };
+
+        el.widgetCustomName = 'Untitled';
+      };
+
+    </script>
+  </body>
+</html>

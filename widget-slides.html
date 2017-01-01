@@ -1,0 +1,158 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-image/iron-image.html">
+
+<!--
+`widget-slides`
+
+@demo demo/index.html 
+-->
+
+<dom-module id="widget-slides">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+      }
+
+      #content,
+      #content iron-image {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <div id="content"></div>
+
+  </template>
+</dom-module>
+
+<script>
+(function() {
+  'use strict';
+
+  Polymer({
+
+    is: 'widget-slides',
+
+    properties: {
+
+      data: Array,
+
+      animationType: {
+        type: String,
+        value: 'fade'
+      },
+
+      currentSlide: {
+        type: Object,
+        readOnly: true,
+        observer: '_currentSlideChanged'
+      },
+
+      _slides: {
+        type: Array
+      }
+
+    },
+
+    observers: [
+      '_dataChanged(data, isAttached)'
+    ],
+
+    detached() {
+      this._reset();
+    },
+
+    _reset() {
+      if (this._slideInterval) {
+        clearInterval(this._slideInterval);
+        this._slideInterval = null;
+      }
+
+      this._setCurrentSlide(null);
+    },
+
+    _dataChanged(data) {
+      const config = data.config || {};
+      this._reset();
+
+      // Set config
+      if (config.style) {
+        this.$.content.setAttribute('style', config.style);
+      }
+
+      // Set slides
+      this._slides = data.slides.map(slide => {
+        // Get bigger url
+        const urls = slide.urls.sort((a,b) => {
+          return b.width - a.width;
+        });
+        const urlInfo = urls[0];
+        const el = document.createElement('iron-image');
+        el.src = urlInfo.url;
+        el.sizing = 'contain';
+        return el;
+      });
+
+      this._setCurrentSlide(this._slides[0]);
+
+      this._slideInterval = setInterval(_ => {
+        const currentIndex = this._slides.indexOf(this.currentSlide);
+
+        if (this._slides[currentIndex + 1]) {
+          this._setCurrentSlide(this._slides[currentIndex + 1]);
+        } else {
+          this._setCurrentSlide(this._slides[0]);
+        }
+
+      }, Number(config.speed) || 10000);
+    },
+
+    _currentSlideChanged(currentSlide, old) {
+      if (currentSlide) {
+        Polymer.dom(this.$.content).appendChild(currentSlide);
+        const animation = currentSlide.animate([
+          {opacity: 0},
+          {opacity: 1}
+        ], {
+          duration: 300,
+          easing: 'linear'
+        });
+      }
+
+      if (old) {
+        const animation = old.animate([
+          {opacity: 1},
+          {opacity: 0}
+        ], {
+          duration: 300,
+          easing: 'linear'
+        });
+
+        animation.onfinish = _ => {
+          old.remove();
+        };
+      }
+    }
+
+    // _cacheImages() {
+    //   return Promise.all(this.data.items.map(d => {
+    //     return new Promise((resolve, reject) => {
+    //       const img = document.createElement('img');
+    //       img.src = d.src;
+    //       img.onload = _ => {
+    //         resolve();
+    //         img.remove();
+    //       };
+    //       img.onerror = _ => {
+    //         reject();
+    //         img.remove();
+    //       };
+    //     });
+    //   }));
+    // }
+
+  });
+
+}());
+</script>

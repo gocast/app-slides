@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+  <head>
+    <title>widget-slides demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script>
+      // Setup Polymer options
+      window.Polymer = {
+        dom: 'shadow',
+        lazyRegister: true
+      };
+    </script>
+
+    <link rel="import" href="../widget-slides.html">
+
+    <style is="custom-style">
+      html,body {
+        height: 100%;
+        width: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        min-height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+
+    <widget-slides></widget-slides>
+
+  </body>
+</html>

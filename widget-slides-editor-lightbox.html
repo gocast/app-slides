@@ -282,7 +282,7 @@
       }
 
       const slideImage = slide.urls.sort((a, b) => {
-        return a.width - b.width;
+        return b.width - a.width;
       });
 
       if (slideImage[0]) {

@@ -134,7 +134,7 @@
             <div class="header-toolbar__title">[[customName]]</div>
             <div class="header-toolbar__subtitle">Slides</div>
           </div>
-          <paper-icon-button icon="add-photo" on-tap="_addPhotoTapped" aria-label="Add photo slide"></paper-icon-button>
+          <paper-icon-button icon="add-photo" on-tap="_selectFilesTapped" aria-label="Add photo slide"></paper-icon-button>
 
           <dropdown-menu-container>
             <paper-icon-button icon="dots-vertical" title="More"></paper-icon-button>
@@ -159,7 +159,6 @@
         <sortable-list class="slides-list" id="sortableList" dragging="{{dragging}}" sortable=".slide" on-sort-list="_onSortList">
           <template is="dom-repeat" id="slidesDomRepeat" items="[[_slides]]">
             <div class="slide"
-                data-item-id$="[[item.__i__]]"
                 style$="[[_computedSlideStyle()]]"
                 on-pointerover="_onPointerOverSlide"
                 on-pointerout="_onPointerOutSlide"
@@ -201,19 +200,19 @@
 
     is: 'widget-slides-editor',
 
+    behaviors: [
+      Polymer.IronResizableBehavior
+    ],
+
     properties: {
 
-      /**
-       * 
-       */
       data: {
         type: Object,
         value: _ => {
           return {
             slides: []
           };
-        },
-        observer: '_dataChanged'
+        }
       },
 
       customName: String,
@@ -258,31 +257,27 @@
 
     },
 
-    behaviors: [
-      Polymer.IronResizableBehavior
-    ],
-
     observers: [
+      '_dataChanged(data, isAttached)',
       '_selectionChanged(selection.splices)'
     ],
 
-    attached() {
+    created() {
       this._onIronResize = this._onIronResize.bind(this);
       this._onKeydown = this._onKeydown.bind(this);
+    },
 
-      // setTimeout(_ => {
-        // this._updateSlideFitSize();
-        // this._slides = this.data.slides;
-        this.addEventListener('iron-resize', this._onIronResize);
-        document.body.addEventListener('keydown', this._onKeydown);
-      // }, 1)
+    attached() {
+      this._toggleListeners(true);
     },
 
     detached() {
-      this.removeEventListener('iron-resize', this._onIronResize);
-      document.body.removeEventListener('keydown', this._onKeydown);
+      this._toggleListeners(false);
     },
 
+    /**
+     * Select all slides.
+     */
     selectAll() {
       const slides = this.$.sortableList.children;
 
@@ -297,6 +292,13 @@
       for (let i = this.selection.length -1; i >= 0 ; i--) {
         this._toggleSlide(this.selection[i]);
       }
+    },
+
+    _toggleListeners(enable) {
+      const m = enable ? 'addEventListener' : 'removeEventListener';
+
+      this[m]('iron-resize', this._onIronResize);
+      document.body[m]('keydown', this._onKeydown);
     },
 
     _onIronResize() {
@@ -420,13 +422,10 @@
     },
 
     _dataChanged(data) {
-      setTimeout(_ => {
-        if (data && data.slides) {
-          this._updateSlideFitSize();
-          this.data.slides.forEach((slide, i) => slide.__i__ = i);
-          this._slides = this.data.slides;
-        }
-      }, 1);
+      if (data && data.slides) {
+        this._updateSlideFitSize();
+        this._slides = this.data.slides;
+      }
     },
 
     _selectionChanged() {
@@ -477,7 +476,7 @@
       }
     },
 
-    _addPhotoTapped() {
+    _selectFilesTapped() {
       this.$.inputFile.selectFiles();
     },
 
@@ -625,13 +624,10 @@
     },
 
     _onSortList(event) {
-      const sortedSlides = [];
-
-      this.$.sortableList.items.forEach(slideElement => {
-        const i = parseInt(slideElement.getAttribute('data-item-id'));
-        const slideObj = this._slides.find(slide => slide.__i__ === i);
-        sortedSlides.push(slideObj);
+      const sortedSlides = this.$.sortableList.items.map(slideElement => {
+        return this.$.slidesDomRepeat.itemForElement(slideElement);
       });
+
       this.data.slides = sortedSlides;
       this._saveChanges({inmediate: true});
     },

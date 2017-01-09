@@ -424,10 +424,12 @@
     },
 
     _dataChanged(data) {
-      if (data && data.slides) {
-        this._updateSlideFitSize();
-        this._slides = this.data.slides;
-      }
+      setTimeout(_ => {
+        if (data && data.slides) {
+          this._updateSlideFitSize();
+          this._slides = this.data.slides;
+        }
+      }, 1);
     },
 
     _selectionChanged() {

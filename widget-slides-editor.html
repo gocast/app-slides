@@ -3,6 +3,7 @@
 <link rel="import" href="../goc-styles/goc-styles.html">
 <link rel="import" href="../iron-image/iron-image.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../sortable-list/sortable-list.html">
 <link rel="import" href="../input-file/input-file.html">
 <link rel="import" href="../dropdown-menu/dropdown-menu-container.html">
@@ -134,6 +135,7 @@
             <div class="header-toolbar__title">[[customName]]</div>
             <div class="header-toolbar__subtitle">Slides</div>
           </div>
+          <paper-spinner-lite class="header-toolbar__spinner" active="[[loading]]"></paper-spinner-lite>
           <paper-icon-button icon="add-photo" on-tap="_selectFilesTapped" aria-label="Add photo slide"></paper-icon-button>
 
           <dropdown-menu-container>

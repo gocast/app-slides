@@ -14,14 +14,22 @@
         display: inline-block;
       }
 
-      #content,
-      #content iron-image {
+      #container {
         height: 100%;
+        position: relative;
         width: 100%;
+      }
+
+      #container iron-image {
+        bottom: 0;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
       }
     </style>
 
-    <div id="content"></div>
+    <div id="container"></div>
 
   </template>
 </dom-module>
@@ -38,20 +46,13 @@
 
       data: Array,
 
-      animationType: {
-        type: String,
-        value: 'fade'
-      },
-
       currentSlide: {
         type: Object,
         readOnly: true,
         observer: '_currentSlideChanged'
       },
 
-      _slides: {
-        type: Array
-      }
+      _slidesInterval: Number
 
     },
 
@@ -60,97 +61,81 @@
     ],
 
     detached() {
-      this._reset();
-    },
-
-    _reset() {
-      if (this._slideInterval) {
-        clearInterval(this._slideInterval);
-        this._slideInterval = null;
-      }
-
-      this._setCurrentSlide(null);
+      this._removeSlidesInterval();
     },
 
     _dataChanged(data) {
-      const config = data.config || {};
-      this._reset();
-
-      // Set config
-      if (config.style) {
-        this.$.content.setAttribute('style', config.style);
+      if (!data || !data.slides || !data.slides.length) {
+        this._removeSlidesInterval();
+        this._setCurrentSlide(null);
+        return;
       }
 
-      // Set slides
+      // Create iron images
       this._slides = data.slides.map(slide => {
         // Get bigger url
         const urls = slide.urls.sort((a,b) => {
           return b.width - a.width;
         });
-        const urlInfo = urls[0];
-        const el = document.createElement('iron-image');
-        el.src = urlInfo.url;
-        el.sizing = 'contain';
-        return el;
+
+        return this.create('iron-image', {
+          src: urls[0].url,
+          sizing: 'contain'
+        });
       });
 
       this._setCurrentSlide(this._slides[0]);
+      this._removeSlidesInterval();
 
-      this._slideInterval = setInterval(_ => {
-        const currentIndex = this._slides.indexOf(this.currentSlide);
-
-        if (this._slides[currentIndex + 1]) {
-          this._setCurrentSlide(this._slides[currentIndex + 1]);
+      this._slidesInterval = setInterval(_ => {
+        const index = this._slides.indexOf(this.currentSlide);
+  
+        if (this._slides[index + 1]) {
+          this._setCurrentSlide(this._slides[index + 1]);
         } else {
           this._setCurrentSlide(this._slides[0]);
         }
+      }, 8000);
+    },
 
-      }, Number(config.speed) || 10000);
+    _removeSlidesInterval() {
+      if (this._slidesInterval) {
+        clearInterval(this._slidesInterval);
+        this._slidesInterval = null;
+      }
     },
 
     _currentSlideChanged(currentSlide, old) {
       if (currentSlide) {
-        Polymer.dom(this.$.content).appendChild(currentSlide);
-        const animation = currentSlide.animate([
-          {opacity: 0},
-          {opacity: 1}
-        ], {
-          duration: 300,
-          easing: 'linear'
+        Polymer.dom(this.$.container).appendChild(currentSlide);
+
+        requestAnimationFrame(_ => {
+          const animation = currentSlide.animate([
+            {opacity: 0},
+            {opacity: 1}
+          ], {
+            duration: 600,
+            easing: 'cubic-bezier(0.47, 0, 0.745, 0.715)'
+          });
         });
       }
 
       if (old) {
-        const animation = old.animate([
-          {opacity: 1},
-          {opacity: 0}
-        ], {
-          duration: 300,
-          easing: 'linear'
-        });
+        requestAnimationFrame(_ => {
+          const animation = old.animate([
+            {opacity: 1},
+            {opacity: 0}
+          ], {
+            duration: 600,
+            easing: 'cubic-bezier(0.47, 0, 0.745, 0.715)'
+          });
 
-        animation.onfinish = _ => {
-          old.remove();
-        };
+          animation.onfinish = _ => {
+            old.remove();
+          };
+        });
       }
     }
-
-    // _cacheImages() {
-    //   return Promise.all(this.data.items.map(d => {
-    //     return new Promise((resolve, reject) => {
-    //       const img = document.createElement('img');
-    //       img.src = d.src;
-    //       img.onload = _ => {
-    //         resolve();
-    //         img.remove();
-    //       };
-    //       img.onerror = _ => {
-    //         reject();
-    //         img.remove();
-    //       };
-    //     });
-    //   }));
-    // }
 
   });
 

@@ -541,6 +541,11 @@
             // try the original
             const ironImage = event.path[0];
 
+            if (item.retries === null) {
+              // no image available
+              return;
+            }
+
             item.retries = item.retries || 0;
             item.retries ++;
 

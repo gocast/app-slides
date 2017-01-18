@@ -13,12 +13,12 @@
 <!--
 `widget-slides-editor`
 
-@demo demo/widget-slides-editor.html 
+@demo demo/widget-slides-editor.html
 -->
 
 <dom-module id="widget-slides-editor">
   <template>
-    <style include="header-layout-styles">
+    <style include="header-layout-styles missing-well-styles">
       :host {
         background: var(--goc-background-color);
         display: block;
@@ -118,7 +118,7 @@
         box-shadow: 0px 2px 4px rgba(0,0,0,0.30);
         color: var(--goc-accent-color);
         opacity: 1;
-      }    
+      }
     </style>
 
     <input-file id="inputFile" on-files-selected="_onFilesSelected" on-load="_onLoadFiles" style="display: none;"></input-file>
@@ -187,6 +187,12 @@
             </div>
           </template>
         </sortable-list>
+
+        <template is="dom-if" if="[[!_slides.imageUrl]]">
+          <div class="missing-well">
+            <div class="missing-well__title">No has subido ninguna imagen</div>
+          </div>
+        </template>
       </div>
 
     </div>
@@ -329,7 +335,7 @@
      * Pointer Down.
      */
     _onPointerDownSlide(event) {
-      // Touch down 
+      // Touch down
       if (event.pointerType === 'touch') {
         const currentTarget = event.currentTarget;
         this._lastTouchPressedSlide = null;
@@ -400,7 +406,7 @@
     },
 
     /**
-     * Toggle slide selection for the given slide element 
+     * Toggle slide selection for the given slide element
      *
      * @param {!HTMLElement} slideEl
      * @return {Boolean} toggle state
@@ -464,7 +470,7 @@
         }
       }
     },
-    
+
     _computedSlideStyle() {
       const size = this._slideFitSize;
       return `width: ${size}px; height: ${size}px;`;

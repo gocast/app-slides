@@ -121,7 +121,11 @@
       }
     </style>
 
-    <input-file id="inputFile" on-files-selected="_onFilesSelected" on-load="_onLoadFiles" style="display: none;"></input-file>
+    <input-file
+        id="inputFile"
+        on-files-selected="_onFilesSelected"
+        on-load="_onLoadFiles"
+        style="display: none;"></input-file>
 
     <div class="header-layout">
 
@@ -188,7 +192,7 @@
           </template>
         </sortable-list>
 
-        <template is="dom-if" if="[[!_slides.imageUrl]]">
+        <template is="dom-if" if="[[!_slides.length]]">
           <div class="missing-well">
             <div class="missing-well__title">No has subido ninguna imagen</div>
           </div>
@@ -241,6 +245,8 @@
       },
 
       dragging: Boolean,
+
+      loading: Boolean,
 
       _slideFitSize: {
         type: Number,
@@ -501,6 +507,7 @@
       for (let i = 0; i < files.length; i++) {
         this._uploadingFiles --;
         const file = files[i];
+
         if (file.urls) {
           const parts = file.name.split('.');
           parts.pop();

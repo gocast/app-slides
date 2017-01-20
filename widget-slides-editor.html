@@ -227,9 +227,15 @@
         }
       },
 
-      customName: String,
+      release: Object,
 
-      presentationId: String,
+      widgetId: Number,
+
+      dataUpdatedAt: Number,
+
+      releaseUpdatedAt: Number,
+
+      customName: String,
 
       selection: {
         type: Array,
@@ -464,6 +470,15 @@
       this._slideFitSize = containerWidth / Math.floor(containerWidth / minSize) - margin;
     },
 
+    _updateWidget() {
+      this.fire('widget-update', {
+        data: this.data,
+        widgetId: this.widgetId,
+        // directly to channel release
+        updateRelease: true,
+      });
+    },
+
     _slideFitSizeChanged(slideFitSize, old) {
       const slides = this.$.sortableList.children;
 
@@ -639,9 +654,9 @@
     _saveChanges({inmediate=false} = {}) {
       if (inmediate) {
         this.cancelDebouncer('save-changes');
-        this.fire('widget-update');
+        this._updateWidget();
       } else {
-        this.debounce('save-changes', _ => this.fire('widget-update'), 4000);
+        this.debounce('save-changes', _ => this._updateWidget(), 4000);
       }
     },
 

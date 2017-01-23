@@ -1,5 +1,5 @@
-_[Demo and API docs](https://gocast.github.io/widget-slides/components/widget-slides/)_
+_[Demo and API docs](https://gocast.github.io/app-slides/components/app-slides/)_
 
-# widget-slides
+# app-slides
 
-This widget allows you to display slides in your presentation.
+This app module allows you to display slides in your presentation.

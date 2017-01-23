@@ -2,28 +2,28 @@
 
 <html>
   <head>
-    <title>widget-slides test</title>
+    <title>app-slides-player test</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
 
-    <link rel="import" href="../widget-slides.html">
+    <link rel="import" href="../app-slides-player.html">
   </head>
   <body>
 
     <test-fixture id="basic">
       <template>
-        <widget-slides></widget-slides>
+        <app-slides-player></app-slides-player>
       </template>
     </test-fixture>
 
     <script>
-      suite('widget-slides', function() {
+      suite('app-slides-player', function() {
 
         test('instantiating the element works', function() {
           var element = fixture('basic');
-          assert.equal(element.is, 'widget-slides');
+          assert.equal(element.is, 'app-slides-player');
         });
 
       });

@@ -1,15 +1,12 @@
 <!doctype html>
 <html>
   <head>
-    <title>widget-slides demo</title>
+    <title>app-slides demo</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-    <script>
- 
-    </script>
 
-    <link rel="import" href="../widget-slides-editor.html">
+    <link rel="import" href="../app-slides-editor.html">
     <link rel="import" href="../../overlay-container/overlay-container.html">
 
     <style is="custom-style">
@@ -41,7 +38,7 @@
   <body>
 
     <overlay-container></overlay-container>
-    <widget-slides-editor></widget-slides-editor>
+    <app-slides-editor></app-slides-editor>
 
     <script>
 
@@ -57,13 +54,13 @@
       ];
 
       window.onload = () => {
-        const el = document.querySelector('widget-slides-editor');
+        const el = document.querySelector('app-slides-editor');
 
         el.data = {
           slides: slides
         };
 
-        el.widgetCustomName = 'Untitled';
+        el.contentCustomName = 'Untitled';
       };
 
     </script>

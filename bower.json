@@ -1,6 +1,6 @@
 {
-  "name": "widget-slides",
-  "main": "widget-slides.html",
+  "name": "app-slides",
+  "main": "app-slides.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.0.0",

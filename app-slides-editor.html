@@ -8,15 +8,15 @@
 <link rel="import" href="../input-file/input-file.html">
 <link rel="import" href="../dropdown-menu/dropdown-menu-container.html">
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
-<link rel="import" href="widget-slides-editor-lightbox.html">
+<link rel="import" href="app-slides-editor-lightbox.html">
 
 <!--
-`widget-slides-editor`
+`app-slides-editor`
 
-@demo demo/widget-slides-editor.html
+@demo demo/app-slides-editor.html
 -->
 
-<dom-module id="widget-slides-editor">
+<dom-module id="app-slides-editor">
   <template>
     <style include="header-layout-styles missing-well-styles">
       :host {
@@ -210,7 +210,7 @@
 
   Polymer({
 
-    is: 'widget-slides-editor',
+    is: 'app-slides-editor',
 
     behaviors: [
       Polymer.IronResizableBehavior
@@ -229,7 +229,7 @@
 
       release: Object,
 
-      widgetId: Number,
+      contentId: Number,
 
       dataUpdatedAt: Number,
 
@@ -393,7 +393,7 @@
           this._toggleSlide(event.currentTarget);
         } else if (!this._lightboxOverlay) {
           const slide = this.$.slidesDomRepeat.itemForElement(event.currentTarget);
-          this._lightboxOverlay = document.createElement('widget-slides-editor-lightbox');
+          this._lightboxOverlay = document.createElement('app-slides-editor-lightbox');
 
           this._lightboxOverlay.onDetach = _ => {
             this._lightboxOverlay = null;
@@ -470,10 +470,10 @@
       this._slideFitSize = containerWidth / Math.floor(containerWidth / minSize) - margin;
     },
 
-    _updateWidget() {
-      this.fire('widget-update', {
+    _updateContent() {
+      this.fire('content-update', {
         data: this.data,
-        widgetId: this.widgetId,
+        contentId: this.contentId,
         // directly to channel release
         updateRelease: true,
       });
@@ -654,9 +654,9 @@
     _saveChanges({inmediate=false} = {}) {
       if (inmediate) {
         this.cancelDebouncer('save-changes');
-        this._updateWidget();
+        this._updateContent();
       } else {
-        this.debounce('save-changes', _ => this._updateWidget(), 4000);
+        this.debounce('save-changes', _ => this._updateContent(), 4000);
       }
     },
 

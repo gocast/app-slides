@@ -8,12 +8,12 @@
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 
 <!--
-`widget-slides-editor-lightbox`
+`app-slides-editor-lightbox`
 
-@demo demo/widget-slides-editor.html 
+@demo demo/app-slides-editor.html
 -->
 
-<dom-module id="widget-slides-editor-lightbox">
+<dom-module id="app-slides-editor-lightbox">
   <template>
     <style>
       :host {
@@ -33,7 +33,7 @@
         height: 100%;
       }
 
-      /* toolbars block */ 
+      /* toolbars block */
       .toolbars {
         bottom: 0;
         left: 0;
@@ -74,12 +74,12 @@
         background-image: linear-gradient(to top,rgba(0,0,0,0.40),transparent 60px,transparent);
         bottom: 0;
       }
-      
+
       .toolbar__title {
         @apply(--layout-flex);
         font-size: 18px;
         font-weight: 600;
-        margin-left: 20px;        
+        margin-left: 20px;
       }
 
       /* arrow-handle block*/
@@ -107,9 +107,9 @@
         fill: white;
         position: absolute;
         left: 10px;
-        top: 10px;        
+        top: 10px;
       }
-      
+
     </style>
 
     <div id="toolbars" class="toolbars">
@@ -142,7 +142,7 @@
 
   Polymer({
 
-    is: 'widget-slides-editor-lightbox',
+    is: 'app-slides-editor-lightbox',
 
     behaviors: [
       AnimatedOverlayBehavior,
@@ -178,7 +178,7 @@
       'pointerout': '_onPointerOut',
       'pointerup': '_onPoniterUp'
     },
-    
+
     created() {
       this._onIronResize = this._onIronResize.bind(this);
     },
@@ -263,7 +263,7 @@
         || (this.currentIndex === 0 && position === 'left')) {
         return true;
       }
-      return _mousePosition !== position; 
+      return _mousePosition !== position;
     },
 
     _updateRect() {

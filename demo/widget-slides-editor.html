@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
-    <link rel="import" href="../app-slides-editor.html">
+    <link rel="import" href="../app-slides.html">
     <link rel="import" href="../../overlay-container/overlay-container.html">
 
     <style is="custom-style">
@@ -38,7 +38,7 @@
   <body>
 
     <overlay-container></overlay-container>
-    <app-slides-editor></app-slides-editor>
+    <app-slides></app-slides>
 
     <script>
 
@@ -54,7 +54,7 @@
       ];
 
       window.onload = () => {
-        const el = document.querySelector('app-slides-editor');
+        const el = document.querySelector('app-slides');
 
         el.data = {
           slides: slides

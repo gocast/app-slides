@@ -133,7 +133,7 @@
       <div class="header-layout__header">
         <div class="header-toolbar">
           <a href="/">
-            <paper-icon-button icon="arrow-back" aria-label="Go back"></paper-icon-button>
+            <paper-icon-button icon="arrow-back" on-tap="_arrowBackTapped" title="Back"></paper-icon-button>
           </a>
           <div class="header-toolbar__main-content">
             <div class="header-toolbar__title">[[customName]]</div>
@@ -667,6 +667,10 @@
 
       this.data.slides = sortedSlides;
       this._saveChanges({inmediate: true});
+    },
+
+    _arrowBackTapped() {
+      this.fire('close-app');
     },
 
   });
